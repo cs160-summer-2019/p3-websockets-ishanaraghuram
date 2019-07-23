@@ -35,7 +35,26 @@
     var userColor = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
     var currId = Math.random(10000);
     var paths = {};
-//     paths[currId] = currPath;
+  
+   window.addEventListener('devicemotion', function(event) {
+        if (event.acceleration.x > 2) {
+          var context = canvas.getContext('2d');
+          context.clearRect(0, 0, canvas.width, canvas.height);
+          for (var index in paths) {
+            paths[index].removeSegments();
+            paths[index] = new paper.Path();
+          }
+        }
+    });
+  
+  window.addEventListener('deviceorientation', function(event) {
+        if (event.gamma > 45){
+          var newColor = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
+          currPath.strokeColor = newColor;
+          userColor = newColor;
+        }
+  });
+
 
     socket.onmessage = function(receivedMessage) {
       // do something when you receive a message
@@ -69,11 +88,8 @@
           var pointY = event.point.y;
           message = JSON.stringify({x: pointX, y: pointY, id: currId, color: userColor}); // send ID with path
           socket.send(message);
-    }
-    // use when sending a message to the server
-    // to be broadcasted to all clients, please add a delay
-//     socket.send(message);
-
+    }; 
+    
     // notify console if socket closes unexpectedly
     socket.onclose = function(e) {
         console.error('Chat socket closed unexpectedly');
