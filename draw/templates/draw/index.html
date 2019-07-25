@@ -11,12 +11,48 @@
     <script type="text/javascript" src="{% static 'draw/vendor/paper/paper-full.min.js' %}"></script>
 
     <style type="text/css">
+    .blueprint {
+    width: 100%;
+    height: auto;
+    }
+   .couch {
+     width: 25%;
+     height: 25%;
+        
+      }
+    .coffee-table{
+      width: 25%;
+      height: 25%;
+    }
+/*       #myCanvas {
+        width: 1000px;
+        height: 1000px;
+        margin: 0;
+      }  */
+      html,
+      body {
+        height: 100%;
+      }
+      canvas[resize] {
+    width: 100%;
+    height: 100%;
+}
+      .rotate-button {
+        width: 15%;
+        font-size: 200%;
+        
+      }
     </style>
 
 </head>
 <body>
     <!-- You may change the dimensions of this canvas -->
-    <canvas id="myCanvas" width="750px" height="750px"></canvas>
+  <canvas id="myCanvas" resize></canvas>
+  <img class = "blueprint"  id = 'blueprint-id' src="/static/images/blueprint.png" style="display:none"></img>
+  <img class = "couch" id="couch-id" src = "/static/images/couch-top.png" style="display:none"></img>
+  <img class = "coffee-table" id="coffee-table-id" src = "/static/images/coffee-table-top-down.png" style="display:none"></img>
+<!--   <img class = "rotate-button" id="rotate-button-id" src= "/static/images/rotate-button.png"> </img> -->
+  <p><button class = "rotate-button" onclick="rotateClick()">Rotate</button></p>
 </body>
 <script>
 
@@ -31,64 +67,108 @@
     var socket = new WebSocket(
         'wss://p3-websockets-ishanaraghuram-ishanaraghuram545937.codeanyapp.com/ws/draw');
       // triggered when receiving a message from the server
-    var currPath = new paper.Path();
-    var userColor = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
-    var currId = Math.random(10000);
-    var paths = {};
+    
+    // last clicked furniture raster stored here
+    var lastClicked; 
+    
+    // create rasters for each of the furniture items
+    // Create a raster item using the image tag with id='mona'
+    var blueprintRaster = new paper.Raster('blueprint-id');
+    var couchRaster = new paper.Raster('couch-id');
+    var tableRaster = new paper.Raster('coffee-table-id');
+    
+    
+// //     couchRaster.rotate(45);
+    blueprintRaster.position = new paper.Point(canvas.width/2, canvas.height/2);
+    couchRaster.position= new paper.Point(canvas.width *3/4, canvas.height *3/4);
+    tableRaster.position= new paper.Point(canvas.width *1/4, canvas.height *3/4);
+    tableRaster.scale(0.2);
+    couchRaster.scale(0.65);
+    
+    function rotateClick() {
+      if (!(lastClicked)) {
+        alert("You need to click a piece of furniture to rotate!");
+      }
+      else {
+        lastClicked.rotate(90);
+      }
+    }
+   
+    tableRaster.onClick = function(){
+      lastClicked = tableRaster;
+    }
+    couchRaster.onClick = function() {
+      lastClicked = couchRaster;
+    }
+//     bluePrintRaster.insertBelow(tableRaster);
+//     tableRaster.insertAbove(blueprintRaster);
+    tableRaster.onMouseDrag = function(event) {
+    tableRaster.position += event.delta;
+    }
+
+// Rotate the raster by 45 degrees on click of rotate:
+//      raster.rotate(45);
+    
+//     var currPath = new paper.Path();
+//     var userColor = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
+//     var currId = Math.random(10000);
+//     var paths = {};
   
-   window.addEventListener('devicemotion', function(event) {
-        if (event.acceleration.x > 2) {
-          var context = canvas.getContext('2d');
-          context.clearRect(0, 0, canvas.width, canvas.height);
-          for (var index in paths) {
-            paths[index].removeSegments();
-            paths[index] = new paper.Path();
-          }
-        }
-    });
+//    window.addEventListener('devicemotion', function(event) {
+//         if (event.acceleration.x > 2) {
+//           var context = canvas.getContext('2d');
+//           context.clearRect(0, 0, canvas.width, canvas.height);
+//           for (var index in paths) {
+//             paths[index].removeSegments();
+//             paths[index] = new paper.Path();
+//           }
+//         }
+//     });
   
-  window.addEventListener('deviceorientation', function(event) {
-        if (event.gamma > 45){
-          var newColor = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
-          currPath.strokeColor = newColor;
-          userColor = newColor;
-        }
-  });
+//   window.addEventListener('deviceorientation', function(event) {
+//         if (event.gamma > 45){
+//           var newColor = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
+//           currPath.strokeColor = newColor;
+//           userColor = newColor;
+//         }
+//   });
 
 
     socket.onmessage = function(receivedMessage) {
       // do something when you receive a message
-      var msg = JSON.parse(receivedMessage.data);
-      var x = msg.x;
-      var y = msg.y;
-      var c = msg.color;
-      var id = msg.id;
+//       var msg = JSON.parse(receivedMessage.data);
+//       var x = msg.x;
+//       var y = msg.y;
+//       var c = msg.color;
+//       var id = msg.id;
       
-      if (url.indexOf('?size=large') > -1) {
-        if (id in paths) {
-          var p = paths[id];
-          p.add(new paper.Point(x, y));
-        }
-        else {
-          var otherPath = new paper.Path();
-          otherPath.strokeColor = c;
-          otherPath.strokeWidth = 5;
-          otherPath.add(new paper.Point(x, y));
-          paths[id] = otherPath;
+//       if (url.indexOf('?size=large') > -1) {
+//         if (id in paths) {
+//           var p = paths[id];
+//           p.add(new paper.Point(x, y));
+//         }
+//         else {
+//           var otherPath = new paper.Path();
+//           otherPath.strokeColor = c;
+//           otherPath.strokeWidth = 5;
+//           otherPath.add(new paper.Point(x, y));
+//           paths[id] = otherPath;
 
-        }
-      }
+//         }
+//       }
     };
-    var message;
+//     var message;
     tool.onMouseMove = function(event) {
-          currPath.strokeColor = userColor;
-          currPath.strokeWidth = 5;
-          currPath.add(event.point);
-          var pointX = event.point.x;
-          var pointY = event.point.y;
-          message = JSON.stringify({x: pointX, y: pointY, id: currId, color: userColor}); // send ID with path
-          socket.send(message);
+//           currPath.strokeColor = userColor;
+//           currPath.strokeWidth = 5;
+//           currPath.add(event.point);
+//           var pointX = event.point.x;
+//           var pointY = event.point.y;
+//           message = JSON.stringify({x: pointX, y: pointY, id: currId, color: userColor}); // send ID with path
+//           socket.send(message);
     }; 
+  
+    
     
     // notify console if socket closes unexpectedly
     socket.onclose = function(e) {
