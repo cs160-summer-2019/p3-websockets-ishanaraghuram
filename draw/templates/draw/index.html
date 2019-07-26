@@ -1,3 +1,4 @@
+
 {% load static %}
 
 <!DOCTYPE html>
@@ -13,7 +14,7 @@
     <style type="text/css">
     .blueprint {
     width: 100%;
-    height: auto;
+    height: 100%;
     }
    .couch {
      width: 25%;
@@ -24,11 +25,7 @@
       width: 25%;
       height: 25%;
     }
-/*       #myCanvas {
-        width: 1000px;
-        height: 1000px;
-        margin: 0;
-      }  */
+
       html,
       body {
         height: 100%;
@@ -58,6 +55,7 @@
 
     // setting up the canvas and one paper tool
     var canvas = document.getElementById('myCanvas');
+
     paper.setup(canvas);
     var tool = new paper.Tool();
 
@@ -79,9 +77,12 @@
     
     
 // //     couchRaster.rotate(45);
-    blueprintRaster.position = new paper.Point(canvas.width/2, canvas.height/2);
-    couchRaster.position= new paper.Point(canvas.width *3/4, canvas.height *3/4);
-    tableRaster.position= new paper.Point(canvas.width *1/4, canvas.height *3/4);
+//     blueprintRaster.position = new paper.Point(canvas.width/2, canvas.height/2);
+//     couchRaster.position= new paper.Point(canvas.width *3/4, canvas.height *3/4);
+//     tableRaster.position= new paper.Point(canvas.width *1/4, canvas.height *3/4);
+    blueprintRaster.position = new paper.Point(window.innerWidth/2, window.innerHeight/2);
+    couchRaster.position= new paper.Point(window.innerWidth *3/4, window.innerHeight *3/4);
+    tableRaster.position= new paper.Point(window.innerWidth *1/4, window.innerHeight *3/4)
     tableRaster.scale(0.2);
     couchRaster.scale(0.65);
     
@@ -100,11 +101,19 @@
     couchRaster.onClick = function() {
       lastClicked = couchRaster;
     }
-//     bluePrintRaster.insertBelow(tableRaster);
-//     tableRaster.insertAbove(blueprintRaster);
     tableRaster.onMouseDrag = function(event) {
-    tableRaster.position += event.delta;
+      tableRaster.insertAbove(couchRaster);
+      tableRaster.position = event.point;
+
     }
+    couchRaster.onMouseDrag = function(event) {
+      couchRaster.insertAbove(tableRaster);
+      couchRaster.position = event.point;
+//       message = JSON.stringify({id: couchRaster, rotation: , position: couchRaster.position});
+    }
+    
+    
+    
 
 // Rotate the raster by 45 degrees on click of rotate:
 //      raster.rotate(45);
