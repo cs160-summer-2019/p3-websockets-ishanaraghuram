@@ -67,22 +67,24 @@
       // triggered when receiving a message from the server
     
     // last clicked furniture raster stored here
-    var lastClicked; 
-    
+    var lastClicked;
+    var lastClickedId;
+    var couchId = 2;
+    var tableId = 1;
     // create rasters for each of the furniture items
     // Create a raster item using the image tag with id='mona'
     var blueprintRaster = new paper.Raster('blueprint-id');
     var couchRaster = new paper.Raster('couch-id');
     var tableRaster = new paper.Raster('coffee-table-id');
-    
+    var message;
     
 // //     couchRaster.rotate(45);
 //     blueprintRaster.position = new paper.Point(canvas.width/2, canvas.height/2);
 //     couchRaster.position= new paper.Point(canvas.width *3/4, canvas.height *3/4);
 //     tableRaster.position= new paper.Point(canvas.width *1/4, canvas.height *3/4);
     blueprintRaster.position = new paper.Point(window.innerWidth/2, window.innerHeight/2);
-    couchRaster.position= new paper.Point(window.innerWidth *3/4, window.innerHeight *3/4);
-    tableRaster.position= new paper.Point(window.innerWidth *1/4, window.innerHeight *3/4)
+    couchRaster.position= new paper.Point(blueprintRaster.width *3/4, blueprintRaster.height *3/4);
+    tableRaster.position= new paper.Point(blueprintRaster.width *1/4, blueprintRaster.height *3/4);
     tableRaster.scale(0.2);
     couchRaster.scale(0.65);
     
@@ -92,24 +94,58 @@
       }
       else {
         lastClicked.rotate(90);
+        // include lastClickedId
+        message = JSON.stringify({id: lastClickedId, rotation: 90, position: lastClicked.position});
+        socket.send(message);
       }
     }
    
     tableRaster.onClick = function(){
       lastClicked = tableRaster;
+      lastClickedId = tableId;
     }
     couchRaster.onClick = function() {
       lastClicked = couchRaster;
+      lastClickedId = couchId;
     }
     tableRaster.onMouseDrag = function(event) {
       tableRaster.insertAbove(couchRaster);
       tableRaster.position = event.point;
+      //message = JSON.stringify({id: tableId, rotation: 0, position: event.point});
+      //socket.send(message);
+      
 
     }
     couchRaster.onMouseDrag = function(event) {
       couchRaster.insertAbove(tableRaster);
       couchRaster.position = event.point;
-//       message = JSON.stringify({id: couchRaster, rotation: , position: couchRaster.position});
+      message = JSON.stringify({id: couchId, rotation: 0, position: event.point});
+      socket.send(message);
+    }
+    
+    tableRaster.onMouseUp = function(event) {
+      message = JSON.stringify({id: tableId, rotation: 0, x: event.point.x, y: event.point.y });
+      socket.send(message);
+    }
+    
+    socket.onmessage = function(receivedMessage) {
+      var msg = JSON.parse(receivedMessage.data);
+      var furnitureId = msg.id;
+      var rotation = msg.rotation;
+      var position = msg.position;
+      var x = msg.x;
+      var y = msg.y;
+      if (furnitureId == couchId) {
+        couchRaster.rotate(rotation);
+        //couchRaster.position = position;
+        couchRaster.position = new paper.Point(x, y);
+        couchRaster.insertAbove(tableRaster);
+        couchRaster.insertAbove(blueprintRaster);
+      } else {
+        tableRaster.rotate(rotation);
+        //tableRaster.position = position;
+        tableRaster.position = new paper.Point(x, y);
+      }
     }
     
     
@@ -143,39 +179,39 @@
 //   });
 
 
-    socket.onmessage = function(receivedMessage) {
-      // do something when you receive a message
-//       var msg = JSON.parse(receivedMessage.data);
-//       var x = msg.x;
-//       var y = msg.y;
-//       var c = msg.color;
-//       var id = msg.id;
+//     socket.onmessage = function(receivedMessage) {
+//       // do something when you receive a message
+// //       var msg = JSON.parse(receivedMessage.data);
+// //       var x = msg.x;
+// //       var y = msg.y;
+// //       var c = msg.color;
+// //       var id = msg.id;
       
-//       if (url.indexOf('?size=large') > -1) {
-//         if (id in paths) {
-//           var p = paths[id];
-//           p.add(new paper.Point(x, y));
-//         }
-//         else {
-//           var otherPath = new paper.Path();
-//           otherPath.strokeColor = c;
-//           otherPath.strokeWidth = 5;
-//           otherPath.add(new paper.Point(x, y));
-//           paths[id] = otherPath;
+// //       if (url.indexOf('?size=large') > -1) {
+// //         if (id in paths) {
+// //           var p = paths[id];
+// //           p.add(new paper.Point(x, y));
+// //         }
+// //         else {
+// //           var otherPath = new paper.Path();
+// //           otherPath.strokeColor = c;
+// //           otherPath.strokeWidth = 5;
+// //           otherPath.add(new paper.Point(x, y));
+// //           paths[id] = otherPath;
 
-//         }
-//       }
-    };
+// //         }
+// //       }
+//     };
 //     var message;
-    tool.onMouseMove = function(event) {
-//           currPath.strokeColor = userColor;
-//           currPath.strokeWidth = 5;
-//           currPath.add(event.point);
-//           var pointX = event.point.x;
-//           var pointY = event.point.y;
-//           message = JSON.stringify({x: pointX, y: pointY, id: currId, color: userColor}); // send ID with path
-//           socket.send(message);
-    }; 
+//     tool.onMouseMove = function(event) {
+// //           currPath.strokeColor = userColor;
+// //           currPath.strokeWidth = 5;
+// //           currPath.add(event.point);
+// //           var pointX = event.point.x;
+// //           var pointY = event.point.y;
+// //           message = JSON.stringify({x: pointX, y: pointY, id: currId, color: userColor}); // send ID with path
+// //           socket.send(message);
+//     }; 
   
     
     
